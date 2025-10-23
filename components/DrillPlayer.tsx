@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Question, Attempt, QuestionModuleId } from '../types';
 import { Module } from '../constants';
 import { ALL_QUESTIONS } from '../data/questions';
-import { analyzeModule2Answer, analyzeModule3Answer } from '../services/geminiService';
 import QuestionCard from './QuestionCard';
 import Button from './common/Button';
 import Card from './common/Card';
@@ -46,11 +45,6 @@ const DrillPlayer: React.FC<DrillPlayerProps> = ({ module, onEndDrill }) => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [bankExhausted, setBankExhausted] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
-  
-  // State for analysis
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisFeedback, setAnalysisFeedback] = useState<{ thirdFactor: string; reverseCausation: string } | null>(null);
-  const [m3AnalysisFeedback, setM3AnalysisFeedback] = useState<{ causeWithoutEffect: string; effectWithoutCause: string } | null>(null);
   
   const [showModelAnswer, setShowModelAnswer] = useState(false);
   
@@ -140,27 +134,13 @@ const DrillPlayer: React.FC<DrillPlayerProps> = ({ module, onEndDrill }) => {
 
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
 
-  const handleAnswer = async (data: { choiceIndex?: number; thirdFactor?: string; reverseCausation?: string; causeWithoutEffect?: string; effectWithoutCause?: string }) => {
+  const handleAnswer = (data: { choiceIndex?: number; thirdFactor?: string; reverseCausation?: string; causeWithoutEffect?: string; effectWithoutCause?: string }) => {
     if (isRevealed || !currentQuestion) return;
 
-    if (module.id === 'common-causes' && data.thirdFactor && data.reverseCausation) {
-        setIsAnalyzing(true);
-        const feedback = await analyzeModule2Answer(currentQuestion, data.thirdFactor, data.reverseCausation);
-        setAnalysisFeedback(feedback);
-        setIsAnalyzing(false);
+    if ((module.id === 'common-causes' && data.thirdFactor && data.reverseCausation) || 
+        (module.id === 'reverse-causality' && data.causeWithoutEffect && data.effectWithoutCause)) {
         setIsRevealed(true);
-        if (currentQuestionIndex === 0) {
-            setShowModelAnswer(true);
-        }
-    } else if (module.id === 'reverse-causality' && data.causeWithoutEffect && data.effectWithoutCause) {
-        setIsAnalyzing(true);
-        const feedback = await analyzeModule3Answer(currentQuestion, data.causeWithoutEffect, data.effectWithoutCause);
-        setM3AnalysisFeedback(feedback);
-        setIsAnalyzing(false);
-        setIsRevealed(true);
-        if (currentQuestionIndex === 0) {
-            setShowModelAnswer(true);
-        }
+        setShowModelAnswer(true);
     } else if (typeof data.choiceIndex !== 'undefined') {
         const answerIndex = data.choiceIndex;
         const responseTimeMs = Date.now() - questionStartTime;
@@ -190,8 +170,6 @@ const DrillPlayer: React.FC<DrillPlayerProps> = ({ module, onEndDrill }) => {
     }
 
     setCurrentQuestionIndex(index);
-    setAnalysisFeedback(null);
-    setM3AnalysisFeedback(null);
     setShowModelAnswer(false);
     setQuestionStartTime(0); // Reset timer for next question
     setQuestionTime(0);
@@ -325,18 +303,10 @@ const DrillPlayer: React.FC<DrillPlayerProps> = ({ module, onEndDrill }) => {
           selectedAnswer={selectedAnswer}
           isRevealed={isRevealed}
           timeElapsed={isModule4 ? questionTime : undefined}
-          isAnalyzing={isAnalyzing}
-          analysisFeedback={module.id === 'common-causes' ? analysisFeedback : (module.id === 'reverse-causality' ? m3AnalysisFeedback : null)}
           highlights={highlights[currentQuestion.id] || []}
           onHighlightsChange={handleHighlightsChange}
         />
         
-        {isRevealed && !showModelAnswer && (currentQuestionIndex > 0) && (module.id === 'common-causes' || module.id === 'reverse-causality') && (
-           <div className="text-center mt-4">
-             <Button onClick={() => setShowModelAnswer(true)} variant="ghost">View Model Answer</Button>
-           </div>
-        )}
-
         {isRevealed && showModelAnswer && (module.id === 'common-causes' || module.id === 'reverse-causality') && (
             <Card className="mt-6 animate-fade-in">
                 <h3 className="text-lg font-bold mb-2 text-punk-cyan">Model Answer</h3>

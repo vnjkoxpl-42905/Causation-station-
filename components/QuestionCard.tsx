@@ -9,8 +9,6 @@ interface QuestionCardProps {
   selectedAnswer: number | null;
   isRevealed: boolean;
   timeElapsed?: number;
-  isAnalyzing: boolean;
-  analysisFeedback: { thirdFactor: string; reverseCausation: string } | { causeWithoutEffect: string; effectWithoutCause: string } | null;
   highlights: { start: number; end: number }[];
   onHighlightsChange: (questionId: string, newHighlights: { start: number; end: number }[]) => void;
 }
@@ -21,8 +19,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   selectedAnswer,
   isRevealed,
   timeElapsed,
-  isAnalyzing,
-  analysisFeedback,
   highlights,
   onHighlightsChange,
 }) => {
@@ -297,7 +293,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 placeholder="What hidden factor could cause BOTH the original cause and effect?"
                 className="w-full bg-punk-base border border-punk-sub/30 rounded-md p-3 text-punk-text focus:outline-none focus:ring-2 focus:ring-punk-cyan"
                 rows={3}
-                disabled={isRevealed || isAnalyzing}
+                disabled={isRevealed}
               />
             </div>
             <div>
@@ -308,11 +304,11 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 placeholder="How could the 'effect' actually be the 'cause'?"
                 className="w-full bg-punk-base border border-punk-sub/30 rounded-md p-3 text-punk-text focus:outline-none focus:ring-2 focus:ring-punk-cyan"
                 rows={3}
-                disabled={isRevealed || isAnalyzing}
+                disabled={isRevealed}
               />
             </div>
-            <Button onClick={handleSubmitModule2} disabled={!thirdFactor || !reverseCausation || isRevealed || isAnalyzing}>
-              {isAnalyzing ? "Analyzing..." : "Submit for Analysis"}
+            <Button onClick={handleSubmitModule2} disabled={!thirdFactor || !reverseCausation || isRevealed}>
+              View Model Answer
             </Button>
           </div>
         )}
@@ -327,7 +323,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   placeholder="Describe a plausible scenario where the cause occurs, but the effect does NOT."
                   className="w-full bg-punk-base border border-punk-sub/30 rounded-md p-3 text-punk-text focus:outline-none focus:ring-2 focus:ring-punk-cyan"
                   rows={3}
-                  disabled={isRevealed || isAnalyzing}
+                  disabled={isRevealed}
                 />
               </div>
               <div>
@@ -338,17 +334,17 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   placeholder="Describe a plausible scenario where the effect occurs, but the cause is ABSENT."
                   className="w-full bg-punk-base border border-punk-sub/30 rounded-md p-3 text-punk-text focus:outline-none focus:ring-2 focus:ring-punk-cyan"
                   rows={3}
-                  disabled={isRevealed || isAnalyzing}
+                  disabled={isRevealed}
                 />
               </div>
-              <Button onClick={handleSubmitModule3} disabled={!causeWithoutEffect || !effectWithoutCause || isRevealed || isAnalyzing}>
-                {isAnalyzing ? "Analyzing..." : "Submit for Analysis"}
+              <Button onClick={handleSubmitModule3} disabled={!causeWithoutEffect || !effectWithoutCause || isRevealed}>
+                View Model Answer
               </Button>
             </div>
         )}
       </div>
 
-      {isRevealed && (
+      {isRevealed && (isModule1 || isModule4) && (
         <div className={`mt-6 p-4 rounded-lg border bg-punk-base/50 border-punk-sub/20 animate-fade-in`}>
           <h3 className={`text-lg font-bold mb-2 text-punk-cyan`}>Explanation</h3>
           <div className={`text-punk-sub whitespace-pre-wrap`}>
@@ -361,35 +357,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 </div>
             )}
           </div>
-        </div>
-      )}
-      
-      {isRevealed && analysisFeedback && (
-        <div className="mt-6 space-y-4 animate-fade-in p-4 bg-punk-base/50 rounded-lg border border-punk-lime/30">
-            {'thirdFactor' in analysisFeedback && (
-                <div>
-                    <h4 className="font-semibold text-punk-lime mb-1">Feedback on Third Factor:</h4>
-                    <p className="text-punk-sub">{analysisFeedback.thirdFactor}</p>
-                </div>
-            )}
-            {'reverseCausation' in analysisFeedback && (
-                <div>
-                    <h4 className="font-semibold text-punk-lime mb-1">Feedback on Reverse Causation:</h4>
-                    <p className="text-punk-sub">{analysisFeedback.reverseCausation}</p>
-                </div>
-            )}
-            { 'causeWithoutEffect' in analysisFeedback && (
-                 <div>
-                    <h4 className="font-semibold text-punk-lime mb-1">Feedback on 'Cause without Effect':</h4>
-                    <p className="text-punk-sub">{analysisFeedback.causeWithoutEffect}</p>
-                 </div>
-            )}
-            { 'effectWithoutCause' in analysisFeedback && (
-                 <div>
-                    <h4 className="font-semibold text-punk-lime mb-1">Feedback on 'Effect without Cause':</h4>
-                    <p className="text-punk-sub">{analysisFeedback.effectWithoutCause}</p>
-                 </div>
-            )}
         </div>
       )}
     </Card>
