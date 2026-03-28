@@ -12,7 +12,7 @@ import Module2Intro from './Module2Intro';
 import Module3Intro from './Module3Intro';
 import Module4Intro from './Module4Intro';
 import Modal from '../assets/Modal';
-import StudyTimer from './common/StudyTimer';
+import StudyTimer from './StudyTimer';
 
 interface DrillPlayerProps {
   module: Module;
@@ -88,6 +88,24 @@ const DrillPlayer: React.FC<DrillPlayerProps> = ({ module, onEndDrill }) => {
     setIsLoadingQuestions(true);
     setBankExhausted(false);
     
+    // Check for saved progress first
+    const savedProgressRaw = localStorage.getItem('causationCoachDrillProgress');
+    if (savedProgressRaw) {
+      try {
+        const savedProgress = JSON.parse(savedProgressRaw);
+        if (savedProgress.moduleId === module.id) {
+          setQuestions(savedProgress.questions);
+          setCurrentQuestionIndex(savedProgress.currentQuestionIndex);
+          setAttempts(savedProgress.attempts);
+          setIsLoadingQuestions(false);
+          setShowIntro(false); // Skip intro if resuming
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to load saved progress", e);
+      }
+    }
+    
     const moduleQuestionBank = ALL_QUESTIONS[module.id];
 
     if (module.id === 'strengthen-weaken') {
@@ -132,6 +150,20 @@ const DrillPlayer: React.FC<DrillPlayerProps> = ({ module, onEndDrill }) => {
     loadQuestions();
   }, [loadQuestions]);
 
+  // Autosave progress
+  useEffect(() => {
+    if (questions.length > 0 && !isLoadingQuestions) {
+      const progress = {
+        moduleId: module.id,
+        questions,
+        currentQuestionIndex,
+        attempts,
+        lastUpdated: Date.now()
+      };
+      localStorage.setItem('causationCoachDrillProgress', JSON.stringify(progress));
+    }
+  }, [module.id, questions, currentQuestionIndex, attempts, isLoadingQuestions]);
+
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
 
   const handleAnswer = (data: { choiceIndex?: number; thirdFactor?: string; reverseCausation?: string; causeWithoutEffect?: string; effectWithoutCause?: string }) => {
@@ -165,6 +197,7 @@ const DrillPlayer: React.FC<DrillPlayerProps> = ({ module, onEndDrill }) => {
   const goToQuestion = (index: number) => {
     if (index < 0) return;
     if (index >= questions.length) {
+      localStorage.removeItem('causationCoachDrillProgress');
       onEndDrill();
       return;
     }

@@ -3,7 +3,7 @@ import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'red';
   className?: string;
 }
 
@@ -13,7 +13,8 @@ const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', classNam
   const variantClasses = {
     primary: 'bg-punk-cyan text-punk-base hover:bg-white hover:shadow-neon-cyan active:scale-95',
     secondary: 'bg-punk-magenta text-punk-base hover:bg-white hover:shadow-neon-magenta active:scale-95',
-    ghost: 'bg-transparent border border-punk-sub text-punk-sub hover:border-punk-text hover:text-punk-text'
+    ghost: 'bg-transparent border border-punk-sub text-punk-sub hover:border-punk-text hover:text-punk-text',
+    red: 'bg-punk-red text-punk-text hover:bg-white hover:text-punk-red hover:shadow-neon-red active:scale-95'
   };
 
   return (

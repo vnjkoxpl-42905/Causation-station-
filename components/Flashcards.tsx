@@ -160,13 +160,13 @@ const Flashcards: React.FC = () => {
                     {/* Front of Card */}
                     <div className="absolute w-full h-full flashcard-face">
                         <Card className="w-full h-full flex items-center justify-center">
-                            <h3 className="text-4xl font-bold text-punk-cyan text-center p-4">{currentCard.term}</h3>
+                            <h3 className="text-4xl font-bold text-punk-cyan text-center p-4">{currentCard?.term}</h3>
                         </Card>
                     </div>
                     {/* Back of Card */}
                     <div className="absolute w-full h-full flashcard-face flashcard-back">
                         <Card className="w-full h-full flex items-center justify-center">
-                            <p className="text-punk-sub text-center p-4 leading-relaxed">{currentCard.definition}</p>
+                            <p className="text-punk-sub text-center p-4 leading-relaxed">{currentCard?.definition}</p>
                         </Card>
                     </div>
                 </div>

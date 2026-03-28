@@ -26,21 +26,31 @@ const Dashboard: React.FC<DashboardProps> = ({ studentName, onStartDrill, onShow
   const [savedDrillModuleId, setSavedDrillModuleId] = useState<string | null>(null);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const [isOverwriteModalOpen, setIsOverwriteModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [selectedModuleForAction, setSelectedModuleForAction] = useState<Module | null>(null);
 
-  useEffect(() => {
+  const checkSavedProgress = () => {
     try {
       const savedProgressRaw = localStorage.getItem('causationCoachDrillProgress');
       if (savedProgressRaw) {
         const savedProgress = JSON.parse(savedProgressRaw);
         if (savedProgress.moduleId) {
           setSavedDrillModuleId(savedProgress.moduleId);
+        } else {
+          setSavedDrillModuleId(null);
         }
+      } else {
+        setSavedDrillModuleId(null);
       }
     } catch (error) {
       console.error("Failed to parse saved drill progress:", error);
       localStorage.removeItem('causationCoachDrillProgress');
+      setSavedDrillModuleId(null);
     }
+  };
+
+  useEffect(() => {
+    checkSavedProgress();
   }, []);
 
   const handleDrillButtonClick = (module: Module) => {
@@ -95,6 +105,31 @@ const Dashboard: React.FC<DashboardProps> = ({ studentName, onStartDrill, onShow
   const handleCancelOverwrite = () => {
       setIsOverwriteModalOpen(false);
       setSelectedModuleForAction(null);
+  };
+
+  const handleResetClick = (module: Module) => {
+    setSelectedModuleForAction(module);
+    setIsResetModalOpen(true);
+  };
+
+  const handleConfirmReset = () => {
+    if (selectedModuleForAction) {
+      const usedIdsKey = `causationCoachUsedIds_${selectedModuleForAction.id}`;
+      localStorage.removeItem(usedIdsKey);
+      
+      if (savedDrillModuleId === selectedModuleForAction.id) {
+        localStorage.removeItem('causationCoachDrillProgress');
+        setSavedDrillModuleId(null);
+      }
+    }
+    setIsResetModalOpen(false);
+    setSelectedModuleForAction(null);
+    checkSavedProgress();
+  };
+
+  const handleCloseResetModal = () => {
+    setIsResetModalOpen(false);
+    setSelectedModuleForAction(null);
   };
   
   const savedModuleInProgress = useMemo(() => {
@@ -173,9 +208,12 @@ const Dashboard: React.FC<DashboardProps> = ({ studentName, onStartDrill, onShow
                     </div>
 
                     </div>
-                    <div className="sm:ml-4 flex-shrink-0 self-center">
+                    <div className="sm:ml-4 flex-shrink-0 self-center flex flex-col gap-2">
                     <Button onClick={() => handleDrillButtonClick(module)} variant={isResume ? 'secondary' : 'primary'}>
                         {isResume ? 'Resume Drill' : 'Start Drill'}
+                    </Button>
+                    <Button onClick={() => handleResetClick(module)} variant="ghost" className="text-xs py-1">
+                        Reset Module
                     </Button>
                     </div>
                 </div>
@@ -277,6 +315,20 @@ const Dashboard: React.FC<DashboardProps> = ({ studentName, onStartDrill, onShow
         <div className="flex justify-end gap-4">
           <Button variant="ghost" onClick={handleCancelOverwrite}>Cancel</Button>
           <Button variant="secondary" onClick={handleConfirmOverwrite}>Discard & Start</Button>
+        </div>
+      </Modal>
+
+      <Modal 
+        isOpen={isResetModalOpen} 
+        onClose={handleCloseResetModal}
+        title="Reset Module Progress?"
+      >
+        <p className="text-punk-sub mb-6">
+          This will reset the question bank for "{selectedModuleForAction?.name}". You will start seeing questions you've already answered again. If you have an active drill for this module, it will also be erased.
+        </p>
+        <div className="flex justify-end gap-4">
+          <Button variant="ghost" onClick={handleCloseResetModal}>Cancel</Button>
+          <Button variant="red" onClick={handleConfirmReset}>Reset Module</Button>
         </div>
       </Modal>
     </div>

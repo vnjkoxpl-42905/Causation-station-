@@ -1,7 +1,8 @@
 
+
 import React, { useState, useEffect } from 'react';
-import Button from './Button';
-import Modal from '../../assets/Modal';
+import Button from './common/Button';
+import Modal from '../assets/Modal';
 
 // Helper to format time from seconds to MM:SS
 const formatTime = (seconds: number): string => {

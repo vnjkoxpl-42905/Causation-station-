@@ -75,3 +75,11 @@ export interface FlashcardDeck {
   name:string;
   cards: Flashcard[];
 }
+
+export interface DrillProgress {
+  moduleId: QuestionModuleId;
+  questions: Question[];
+  currentQuestionIndex: number;
+  attempts: Attempt[];
+  lastUpdated: number;
+}
